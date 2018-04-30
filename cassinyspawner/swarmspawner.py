@@ -20,6 +20,7 @@ from traitlets import (
     List,
     Bool,
     Int,
+    Callable,
 )
 
 
@@ -107,6 +108,12 @@ class SwarmSpawner(Spawner):
                                       help=dedent(
                                           """Name of the service running the JupyterHub
                                           """))
+
+    after_service_start = Callable(None, config=True,
+                    help=dedent(
+                        """A callback that is called once the service has been started
+                        the function will be called with the spawner instance as an argument
+                        """))                 
 
     @property
     def tls_client(self):
@@ -348,10 +355,13 @@ class SwarmSpawner(Spawner):
                 "Created Docker service '%s' (id: %s) from image %s",
                 self.service_name, self.service_id[:7], image)
 
+
+           
         else:
             self.log.info(
                 "Found existing Docker service '%s' (id: %s)",
                 self.service_name, self.service_id[:7])
+
             # Handle re-using API token.
             # Get the API token from the environment variables
             # of the running service:
@@ -361,6 +371,9 @@ class SwarmSpawner(Spawner):
                     self.api_token = line.split('=', 1)[1]
                     break
 
+        if self.after_service_start:
+            self.after_service_start(self)
+ 
         ip = self.service_name
         port = self.service_port
 
