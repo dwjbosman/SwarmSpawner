@@ -20,7 +20,7 @@ from traitlets import (
     List,
     Bool,
     Int,
-    Callable,
+    Any,
 )
 
 
@@ -109,7 +109,7 @@ class SwarmSpawner(Spawner):
                                           """Name of the service running the JupyterHub
                                           """))
 
-    after_service_start = Callable(None, config=True,
+    after_service_start = Any(None, config=True,
                     help=dedent(
                         """A callback that is called once the service has been started
                         the function will be called with the spawner instance as an argument
