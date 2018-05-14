@@ -169,7 +169,17 @@ class SwarmSpawner(Spawner):
         return []
 
     def _public_hub_api_url(self):
-        proto, path = self.hub.api_url.split('://', 1)
+        return self._public_hub_url(self.hub.api_url)
+        #proto, path = self.hub.api_url.split('://', 1)
+        #_, rest = path.split(':', 1)
+        #return '{proto}://{name}:{rest}'.format(
+        #    proto=proto,
+        #    name=self.jupyterhub_service_name,
+        #    rest=rest
+        #)
+
+    def _public_hub_url(self,url):
+        proto, path = url.split('://', 1)
         _, rest = path.split(':', 1)
         return '{proto}://{name}:{rest}'.format(
             proto=proto,
@@ -177,19 +187,35 @@ class SwarmSpawner(Spawner):
             rest=rest
         )
 
+
     def get_env(self):
         env = super().get_env()
+        
+        self.log.info("Environment before swarmspawner update")
+        for key, val in env.items():
+            self.log.info("key %s = %s" %(key,val))
+        
+        self.log.info("hub info")
+        self.log.info(pformat(vars(self.hub)))
+
         env.update(dict(
-            JPY_USER=self.user.name,
-            JPY_COOKIE_NAME=self.user.server.cookie_name,
-            JPY_BASE_URL=self.user.server.base_url,
-            JPY_HUB_PREFIX=self.hub.server.base_url
+            #JPY_USER=self.user.name,
+            #JPY_COOKIE_NAME=self.user.server.cookie_name,
+            #JPY_BASE_URL=self.user.server.base_url,
+            #? JPY_HUB_PREFIX=self.hub.server.base_url
         ))
 
         if self.notebook_dir:
             env['NOTEBOOK_DIR'] = self.notebook_dir
 
-        env['JPY_HUB_API_URL'] = self._public_hub_api_url()
+        env['JUPYTERHUB_API_URL'] = self._public_hub_api_url()
+        #env['JUPYTERHUB_HOST'] = self._public_hub_url(self.hub.url.replace(self.hub.base_url,""))
+        #env['JUPYTERHUB_OAUTH_CALLBACK_URL'] = 
+
+        self.log.info("Environment after swarmspawner update")
+        for key, val in env.items():
+            self.log.info("key %s = %s" %(key,val))
+
 
         return env
 
